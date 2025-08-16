@@ -1,0 +1,333 @@
+% main.tex
+\documentclass[11pt]{article}
+
+% ------------------------------------------------------------------------------
+% Packages
+% ------------------------------------------------------------------------------
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{csquotes}
+\usepackage{authblk}
+\usepackage{mdframed}
+\usepackage{setspace}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+% ------------------------------------------------------------------------------
+% Hyperref setup
+% ------------------------------------------------------------------------------
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue
+}
+
+% ------------------------------------------------------------------------------
+% Environments & Macros
+% ------------------------------------------------------------------------------
+\newtheorem{proposition}{Proposition}
+\newtheorem{definitionenv}{Definition}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\sd}{\mathrm{sd}}
+\newcommand{\R}{\mathbb{R}}
+
+\newcommand{\fc}{f_{\mathrm{c}}}             % temporal cutoff (CFF proxy)
+\newcommand{\cff}{\mathrm{CFF}}               % CFF observable
+\newcommand{\vrel}{v_{\mathrm{rel}}}          % relative speed
+\newcommand{\dchar}{d_{\mathrm{char}}}        % characteristic distance
+\newcommand{\lam}{\lambda}                    % pressure index
+\newcommand{\lamenv}{\lambda_{\mathrm{env}}}  % ecological pressure index
+\newcommand{\thetamax}{\theta_{\max}}         % tolerated displacement
+\newcommand{\taus}{\tau_{\mathrm{neural}}}    % neural delay
+\newcommand{\Lumin}{L}                        % luminance
+\newcommand{\Contrast}{C}                     % contrast
+\newcommand{\Aperture}{A}                     % optical aperture/collecting area
+
+\definecolor{boxbg}{RGB}{248,248,248}
+\newmdenv[
+  backgroundcolor=boxbg,
+  linecolor=black,
+  linewidth=0.5pt,
+  skipabove=12pt,
+  skipbelow=12pt,
+  innertopmargin=10pt,
+  innerbottommargin=8pt
+]{graybox}
+
+% ------------------------------------------------------------------------------
+% Title & Authors
+% ------------------------------------------------------------------------------
+\title{\vspace{-10pt}\textbf{Ecological Motion--Perception Hypothesis (EMPH):}\\
+Temporal Vision Scales with Task-Relevant Relative Angular Velocity}
+\author[1]{Assistant}
+\author[2]{Jacob Elliott}
+\affil[1,2]{\small Independent Research Draft (v0.2)}
+\date{\small \today}
+
+% ------------------------------------------------------------------------------
+% Document
+% ------------------------------------------------------------------------------
+\begin{document}
+\maketitle
+\doublespacing
+
+\begin{abstract}
+Animals differ strikingly in the temporal resolution of vision. The \emph{Ecological Motion--Perception Hypothesis} (EMPH) states: under bright-light, vision-dominated conditions, the upper temporal cutoff of visual processing (operationalized by critical flicker fusion frequency, \cff) scales with the distribution of \emph{task-relevant relative angular velocities} that an organism must resolve to maintain fitness-critical behaviors (foraging, evasion, collision avoidance). Formally, if $\omega_{\text{env}} \approx \vrel/\dchar$, then a Nyquist-like constraint yields $\fc \gtrsim \omega_{\text{env}}/\thetamax$, modulated by photon budget and neural kinetics. Classical ``predator bonuses'' emerge not from predation per se but because pursuit/evasion elevates $\vrel$, shortens $\dchar$, and tightens control margins under sensorimotor delay. We sharpen the claim, define measurable proxies, lay out a hierarchical phylogenetic measurement model with luminance/method controls, specify falsifiable predictions against strong rivals (metabolic-only, light-only, architecture-only), and provide a preregistered analysis plan and simulation tests. The result is a mechanism-first, data-ready program that makes clean, quantitative bets about where EMPH must succeed or fail.
+\end{abstract}
+
+\noindent\textbf{Keywords:} temporal vision; critical flicker fusion; optic flow; angular velocity; control theory; Nyquist; predator--prey; retinal heating; luminance.
+
+% ------------------------------------------------------------------------------
+\section{Introduction}
+% ------------------------------------------------------------------------------
+Temporal resolution in vision---how quickly a visual system can register and utilize changes in light---varies from single digits of hertz in scotopic specialists to well over \SI{100}{Hz} in diurnal aerialists. This variation is ecologically patterned. Falconiformes, swifts, pigeons, flycatchers, dragonflies, and certain open-water fishes (with eye/brain heater organs) all exhibit unusually rapid visual processing \citep{Potier2020,Bostrom2016,SwordfishHeaters}. Yet temporal cutoffs (and \cff) depend strongly on luminance, contrast, stimulus size, and method (ERG vs.\ behavior) \citep{DeLangeCSF,WatsonTemporalCSF}. Metabolic rate and body size also covary with \cff\ across vertebrates \citep{Healy2013}.
+
+We steelman an organizing principle that reconciles these facts: \emph{the relevant ecological pressure for temporal vision is the distribution of relative angular velocities encountered at behaviorally limiting tasks}. Locomotor speed alone is insufficient; typical working distances, scene bandwidth, and control requirements under delay are decisive. EMPH thus predicts that species engaged in high-$\vrel$ interactions at short $\dchar$ under bright light will evolve higher temporal cutoffs, conditional on photon budget and neural kinetics.
+
+% ------------------------------------------------------------------------------
+\section{Conceptual Framework}
+% ------------------------------------------------------------------------------
+\subsection{Relative angular velocity as the pressure}
+Let $\omega_{\text{env}}$ denote the retinally relevant angular velocity of task-relevant features. For small angles,
+\begin{equation}
+\omega_{\text{env}}\;\approx\;\frac{\vrel}{\dchar}\,,
+\end{equation}
+where $\vrel$ is the relative speed between observer and salient target(s) and $\dchar$ is a characteristic engagement or avoidance distance (e.g., strike initiation, nearest-neighbor spacing, obstacle clearance). Activities such as stoop interception, hawking insects, lane-keeping in clutter, and schooling in surge flows all shift the distribution of $\omega_{\text{env}}$ upward.
+
+\subsection{Sampling, photons, and control stability}
+To avoid motion aliasing and preserve motion-energy estimation, per-sample image displacement should not exceed a tolerated bound $\thetamax$ (on the order of degrees). A Nyquist-like argument yields:
+\begin{equation}
+\label{eq:nyquist}
+\fc \;\gtrsim\; \frac{\omega_{\text{env}}}{\thetamax}\;\times\; g(\Lumin,\Contrast,\Aperture)\;\times\; h(\taus)\,,
+\end{equation}
+where $g$ increases with photon budget (higher luminance and/or larger effective aperture permit shorter exposures for a given SNR) and $h$ captures the demand for closed-loop stability under sensorimotor delay $\taus$ (higher sample rates preserve phase margin as $\omega_{\text{env}}$ rises). This connects optical constraints, neural kinetics, and control-theoretic requirements.
+
+\begin{graybox}
+\textbf{Box 1: Terms.} \textbf{Temporal cutoff} ($\fc$) is the high-frequency limit of the temporal contrast sensitivity function (TCSF) under specified conditions (here, photopic). \textbf{CFF} is a practical proxy for $\fc$ measured behaviorally or via ERG. \textbf{Task-relevant} means behaviors that limit fitness. \textbf{Photon budget} is the average photons per sample given scene luminance $\Lumin$, contrast $\Contrast$, and optical throughput $\Aperture$.
+\end{graybox}
+
+% ------------------------------------------------------------------------------
+\section{Formal Hypotheses}
+% ------------------------------------------------------------------------------
+We formulate EMPH as a hierarchy of testable statements, scoped to diurnal, vision-dominated contexts.
+
+\begin{definitionenv}[Ecological motion-pressure index]
+Define
+\begin{equation}
+\lamenv \;\equiv\; \frac{\vrel}{\dchar}\,,
+\end{equation}
+with $\vrel$ the upper quantile (e.g., 90th) of task-relevant relative speeds and $\dchar$ a characteristic task distance. Both are task- and species-specific, estimated from ethograms, kinematic literature, or morpho-ecological priors.
+\end{definitionenv}
+
+\begin{proposition}[Nyquist-like lower bound]
+Under photopic conditions, to limit per-sample displacement to $\thetamax$, the temporal cutoff must satisfy
+\begin{equation}
+\label{eq:bound}
+\fc \;\ge\; \kappa \,\frac{\lamenv}{\thetamax}\,,
+\end{equation}
+for some $\kappa>0$ that increases with photon budget and decreases with neural time constants. Equality is not expected; (\ref{eq:bound}) is a conservative lower bound.
+\end{proposition}
+
+\paragraph{Primary hypothesis (EMPH).}
+Across species,
+\begin{equation}
+\label{eq:emph}
+\log \fc \;=\; \beta_0 \;+\; \alpha\,\log \lamenv \;+\; \bm{\gamma}^{\top}\bm{Z}\;+\; u_{\text{clade}} \;+\; \varepsilon\,,
+\end{equation}
+where $\bm{Z}$ includes log body mass, mass-specific metabolic rate, diel activity, luminance/contrast at measurement, and method (behavioral vs.\ ERG). We expect $\alpha>0$. The classic ``predator coefficient'' is re-expressed as a \emph{pursuit difficulty index} interacting with $\lamenv$ (see Section~\ref{sec:pursuit}).
+
+% ------------------------------------------------------------------------------
+\section{Operationalization}
+% ------------------------------------------------------------------------------
+\subsection{Observable endpoints}
+We take $\cff$ measured under photopic, high-contrast conditions as a proxy for $\fc$. Because \cff\ depends on method and stimulus parameters, we include study-level effects and covariates (Section~\ref{sec:measurement}).
+
+\subsection{Constructing $\lamenv$}
+\begin{itemize}[leftmargin=1.25em]
+\item \textbf{Relative speed} $\vrel$: maximum habitual speed of the focal species \emph{or} the upper-quantile speeds of relevant ``others'' (prey, predators, conspecifics, obstacles/flow), whichever is larger for the task domain. For birds use mean/upper-tail airspeeds; for fishes use sustained swimming speeds; for insects use pursuit flight and target velocities. \citep{Alerstam2007,FishBaseSpeed}
+\item \textbf{Characteristic distance} $\dchar$: median engagement/avoidance distance (strike initiation, nearest-neighbor spacing, lane-keeping clearance, obstacle passing distance). When unknown, adopt a morpho-ecological prior (e.g., proportional to body length with habitat openness multipliers).
+\end{itemize}
+
+\subsection{Pursuit difficulty as a continuous moderator}
+\label{sec:pursuit}
+Define a pursuit/evasion index $D$ from prey evasiveness (max turn rate), speed ratio, and typical interception distances. Model an interaction $\log\lamenv \times D$ so that EMPH predicts steeper slopes where control margins are tight.
+
+% ------------------------------------------------------------------------------
+\section{Measurement Model}
+% ------------------------------------------------------------------------------
+\label{sec:measurement}
+Different methods yield different absolute \cff. We explicitly model:
+\begin{equation}
+\label{eq:obsmodel}
+\log \mathrm{CFF}_{i,s} \;\sim\; \mathcal{N}\!\left(\mu_i \;+\; \delta_{\text{method}(s)} \;+\; \beta_L \log \Lumin_{i,s} \;+\; \beta_C \log \Contrast_{i,s} \;+\; \beta_{\text{ecc}}\,\text{Ecc}_{i,s},\; \sigma_s^2\right),
+\end{equation}
+where $i$ indexes species and $s$ studies. The latent species mean $\mu_i$ is linked to $\lamenv$ via (\ref{eq:emph}). Study-level residuals $\sigma_s$ absorb unreported stimulus parameter differences.
+
+% ------------------------------------------------------------------------------
+\section{Statistical Model (Bayesian, phylogenetic)}
+% ------------------------------------------------------------------------------
+Let $u_{\text{clade}} \sim \mathcal{N}(0,\sigma_{\text{clade}}^2)$ with covariance informed by a Brownian-motion model on the phylogeny (i.e., PGLS in a hierarchical guise). Place weakly informative priors:
+\begin{align*}
+\beta_0 &\sim \mathcal{N}(0,2), \qquad
+\alpha \sim \mathcal{N}(0.3,0.3)\;\;[\text{truncated } >0],\\
+\bm{\gamma} &\sim \mathcal{N}(\bm{0}, 1), \qquad
+\delta_{\cdot} \sim \mathcal{N}(0,0.5),\\
+\beta_L,\beta_C,\beta_{\text{ecc}} &\sim \mathcal{N}(0,0.5), \qquad
+\sigma_s,\sigma_{\text{clade}} \sim \mathrm{Half\text{-}Student\text{-}t}(\nu=4,\,0,\,0.5).
+\end{align*}
+Inference via Hamiltonian Monte Carlo; diagnostics include $\hat{R}$, energy-BFMI, and posterior predictive checks.
+
+\paragraph{Effect sizes (reporting).} Report $\alpha$ as the slope on $\log\lamenv$, and the multiplicative effect $\exp(\alpha)$ per doubling of $\lamenv$. Report the pursuit moderation as $\partial \log \fc/\partial \log\lamenv$ across $D$ quantiles. Provide marginal $R^2$, variance partition coefficients, and LOO-CV contrasts against rivals.
+
+% ------------------------------------------------------------------------------
+\section{Rival Hypotheses and Model Comparison}
+% ------------------------------------------------------------------------------
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Metabolic/size-only:} $\log\fc = \beta_0 + \gamma_1 \log M + \gamma_2 \log \mathrm{BMR} + u_{\text{clade}} + \varepsilon$. Prediction: $\alpha=0$ after controls. \citep{Healy2013}
+\item \textbf{Light-environment-only:} $\log\fc$ explained by photic niche descriptors and measurement luminance/contrast; $\lamenv$ adds no information.
+\item \textbf{Architecture-cap:} lineage-specific retinal circuitry caps $\fc$; ecological variables only shift within-lineage plateaus. Prediction: clade random effect dominates; $\alpha \approx 0$ within clades.
+\end{enumerate}
+We compare via LOO-CV, WAIC, and Bayes factors (sensitivity analysis).
+
+% ------------------------------------------------------------------------------
+\section{Predictions with Numbers}
+% ------------------------------------------------------------------------------
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Within raptors:} controlling for mass/BMR/luminance/method, species with larger $\lamenv$ (e.g., shorter strike distances at higher $\vrel$) exhibit $+0.15$ to $+0.30$ log-units in $\fc$ (multipliers $\sim1.16$--$1.35$). \citep{Potier2020}
+\item \textbf{Aerial insectivores vs.\ granivores:} flycatchers and blue tits exceed similarly sized, slower, longer-distance foragers by $\gtrsim\SI{20}{Hz}$ under matched photopic conditions. \citep{Bostrom2016}
+\item \textbf{Open-water predators with retinal heaters:} at depth and low ambient temperature, heated retinas raise $\fc$ by up to an order of magnitude relative to unheated baselines at the same $\lamenv$. \citep{SwordfishHeaters}
+\item \textbf{Cluttered fast flyers (pigeons):} high $\fc$ is predicted without predation due to short $\dchar$ in obstacle-dense flight corridors. \citep{PigeonERG}
+\end{enumerate}
+
+% ------------------------------------------------------------------------------
+\section{Falsification Tests}
+% ------------------------------------------------------------------------------
+EMPH fails if any of the following robustly hold under photopic conditions with measurement controls:
+\begin{enumerate}[leftmargin=1.5em]
+\item Species with very low $\lamenv$ exhibit $\fc \gg \SI{80}{Hz}$ systematically across clades.
+\item $\alpha \le 0$ within multiple clades in leave-one-clade-out analyses.
+\item Rivals outcompete EMPH in LOO-CV across taxa, and $\lamenv$'s posterior inclusion probability collapses under reasonable priors.
+\end{enumerate}
+
+% ------------------------------------------------------------------------------
+\section{Back-of-Envelope Consistency Checks}
+% ------------------------------------------------------------------------------
+Assume $\thetamax \approx 3^\circ \approx 0.0524$ rad. Then (\ref{eq:bound}) yields:
+\begin{itemize}[leftmargin=1.25em]
+\item Peregrine stoop: $\vrel \approx \SI{70}{m/s}$, $\dchar \approx \SI{15}{m}$ $\Rightarrow \omega\approx \SI{4.7}{rad/s}$, $\fc \gtrsim \SI{90}{Hz}$; measured photopic \cff\ $\sim\SI{129}{Hz}$. \citep{Potier2020}
+\item Dragonfly: $\vrel \approx \SI{10}{m/s}$, $\dchar \approx \SI{0.5}{m}$ $\Rightarrow \omega\approx \SI{20}{rad/s}$, $\fc \gtrsim \SI{380}{Hz}$; reports $>\SI{200}{Hz}$ are consistent given nonzero $\thetamax$ and method limits. \citep{InsectCFFReview}
+\item Swordfish: $\vrel \approx \SI{10}{m/s}$, $\dchar \approx \SI{5}{m}$ $\Rightarrow \fc \gtrsim \SI{38}{Hz}$; heater organs elevate temporal kinetics to meet this requirement at depth. \citep{SwordfishHeaters}
+\end{itemize}
+
+% ------------------------------------------------------------------------------
+\section{Data and Measurement Plan}
+% ------------------------------------------------------------------------------
+\paragraph{Phase I (synthesis).} Assemble a cross-taxon table (birds, fishes, mammals, insects) of photopic \cff\ endpoints with method tags, luminance/contrast, eccentricity, and citations; extract $\vrel$ (habitual and relevant-other speeds) and $\dchar$ (strike/avoid distances) from literature and ethograms. Include body mass, BMR, diel activity. Use conservative upper-tail summaries for $\vrel$ and medians for $\dchar$.
+
+\paragraph{Phase II (prospective).} Within-clade contrasts (falconids with quantified strike distances; alcids vs.\ gulls); aquatic predators under depth/temperature manipulations (eye temperature loggers). Standardize stimuli: high contrast, $\Lumin \ge \SI{1500}{cd/m^2}$, photopic adaptation.
+
+% ------------------------------------------------------------------------------
+\section{Simulation Tests}
+% ------------------------------------------------------------------------------
+We validate identifiability and expected effect sizes via agent-based pursuit/avoid simulations and synthetic datasets with known $\alpha$, method effects, and luminance slopes. We assess recovery bias of $\alpha$, coverage of credible intervals, and robustness to mismeasured $\dchar$ (simulate log-normal error).
+
+% ------------------------------------------------------------------------------
+\section{Scope, Limitations, and Extensions}
+% ------------------------------------------------------------------------------
+We restrict EMPH claims to photopic, vision-dominated tasks. Nocturnal/scotopic conditions, echolocating taxa, or electroreception-dominant systems are out-of-scope for primary inference. Extensions include explicit thermal bandwidth models (Q$_{10}$ scaling of phototransduction), periphery--fovea differences, and clutter metrics as direct covariates (scene spatial frequency spectra).
+
+% ------------------------------------------------------------------------------
+\section{Conclusion}
+% ------------------------------------------------------------------------------
+EMPH reframes cross-species temporal vision not as a vague ``predator bonus'' but as adaptive sampling for ecological angular-velocity fields under optical, neural, and control constraints. The model yields tractable measurements ($\lamenv$, pursuit difficulty), clear rivals, and crisp falsification tests. If sustained, EMPH unifies disparate findings---raptors, aerial insectivores, pigeons, and heated-retina predators---under a single quantitative principle.
+
+% ------------------------------------------------------------------------------
+\section*{Author Contributions}
+Concept, formalization, and drafting: Assistant. Concept refinement, ecological specification, and validation heuristics: J.\ Elliott.
+
+% ------------------------------------------------------------------------------
+\section*{Data \& Code Availability}
+A preregistered analysis plan, data template, simulation code, and figure scripts will be made available in an open repository upon manuscript submission.
+
+% ------------------------------------------------------------------------------
+\section*{Acknowledgments}
+We thank colleagues in comparative physiology, vision science, and control theory for comments on early versions. All errors are our own.
+
+% ------------------------------------------------------------------------------
+% Figure placeholders
+% ------------------------------------------------------------------------------
+\clearpage
+\begin{figure}[t]
+  \centering
+  \fbox{\rule{0pt}{2.25in}\rule{0.9\linewidth}{0pt}}
+  \caption{\textbf{Conceptual map.} Photopic temporal cutoff $\fc$ increases with the ecological motion-pressure index $\lamenv = \vrel/\dchar$, modulated by photon budget and neural delay. Overlaid are iso-$\fc$ contours from Eq.~(\ref{eq:nyquist}).}
+  \label{fig:concept}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \fbox{\rule{0pt}{2.5in}\rule{0.9\linewidth}{0pt}}
+  \caption{\textbf{Empirical design.} Schematic log--log plot of photopic \cff\ versus $\lamenv$ across taxa, with within-clade regression lines and pursuit-difficulty moderation. Pigeons high at short $\dchar$; raptors and aerial insectivores on the upper band; swordfish shown at two retinal temperatures.}
+  \label{fig:design}
+\end{figure}
+
+% ------------------------------------------------------------------------------
+% Bibliography
+% ------------------------------------------------------------------------------
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+% ------------------------------------------------------------------------------
+% Appendices
+% ------------------------------------------------------------------------------
+\clearpage
+\appendix
+
+\section{Variable Definitions}
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}llp{8.5cm}@{}}
+\toprule
+Symbol & Units & Definition \\ \midrule
+$\cff$ & Hz & Critical flicker fusion frequency (photopic) \\
+$\fc$ & Hz & Upper temporal cutoff of TCSF (latent; proxied by \cff) \\
+$\vrel$ & m/s & Task-relevant relative speed (observer vs.\ salient target) \\
+$\dchar$ & m & Characteristic engagement/avoidance distance \\
+$\lamenv$ & s$^{-1}$ & Ecological motion-pressure index ($\vrel/\dchar$) \\
+$\thetamax$ & rad & Tolerated per-sample image displacement \\
+$\Lumin$ & cd/m$^2$ & Luminance at measurement \\
+$\Contrast$ & -- & Michelson or Weber contrast of stimulus \\
+$\Aperture$ & -- & Effective optical collecting area/throughput \\
+$\taus$ & s & Sensorimotor delay (visual + motor) \\
+$D$ & -- & Pursuit difficulty moderator (e.g., prey evasiveness) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{From Motion Aliasing to Eq.~(\ref{eq:nyquist})}
+Consider a feature moving at angular speed $\omega$. With sampling period $\Delta t = 1/\fc$, the per-sample displacement is $\Delta \theta = \omega \Delta t$. To bound tracking error and avoid aliasing, require $\Delta \theta \le \thetamax$. Thus $\fc \ge \omega/\thetamax$. Substituting $\omega \approx \vrel/\dchar$ gives (\ref{eq:nyquist}). Photon limits and neural time constants enter as multiplicative penalties/bonuses on achievable $\fc$ for a fixed SNR and control margin.
+
+\section{Preregistration Sketch}
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Scope:} diurnal, vision-dominant taxa; photopic measurements ($\Lumin \ge \SI{1500}{cd/m^2}$) prioritized.
+\item \textbf{Outcome:} log-\cff\ endpoint per species (study-adjusted).
+\item \textbf{Predictors:} $\log\lamenv$ (primary), body mass, BMR, diel activity, method, luminance, contrast, eccentricity.
+\item \textbf{Model:} Bayesian hierarchical PGLS; priors as specified.
+\item \textbf{Decisions:} EMPH supported if posterior $\Pr(\alpha>0) > 0.975$ and LOO-CV improves over rivals by $\Delta \mathrm{ELPD} > 4$ with non-overlapping SE.
+\item \textbf{Robustness:} leave-one-clade-out; sensitivity to $\dchar$ priors; luminance subsampling.
+\end{enumerate}
+
+\end{document}
